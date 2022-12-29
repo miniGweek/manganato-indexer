@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MangaNatoIndexer.Migrations
 {
-    [DbContext(typeof(ManganatoContext))]
+    [DbContext(typeof(ManganatoDbContext))]
     partial class ManganatoContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -56,6 +56,10 @@ namespace MangaNatoIndexer.Migrations
 
                     b.Property<DateTimeOffset>("CreatedOn")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastChapterUpdatedOn")
                         .HasColumnType("datetimeoffset");

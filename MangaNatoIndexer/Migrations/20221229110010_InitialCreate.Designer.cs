@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MangaNatoIndexer.Migrations
 {
-    [DbContext(typeof(ManganatoContext))]
-    [Migration("20221229093341_InitialCreate")]
+    [DbContext(typeof(ManganatoDbContext))]
+    [Migration("20221229110010_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -59,6 +59,10 @@ namespace MangaNatoIndexer.Migrations
 
                     b.Property<DateTimeOffset>("CreatedOn")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastChapterUpdatedOn")
                         .HasColumnType("datetimeoffset");

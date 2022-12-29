@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MangaNatoIndexer
 {
-    internal class ManganatoContext : DbContext
+    internal class ManganatoDbContext : DbContext
     {
         public DbSet<Manga> Mangas { get; set; }
         public DbSet<MangaDetail> MangaDetails { get; set; }
 
-        public ManganatoContext(DbContextOptions<ManganatoContext> contextOptions) : base(contextOptions) { }
+        public ManganatoDbContext(DbContextOptions<ManganatoDbContext> contextOptions) : base(contextOptions) { }
     }
 
     internal class Manga
@@ -28,6 +22,7 @@ namespace MangaNatoIndexer
     internal class MangaDetail
     {
         public int MangaDetailId { get; set; }
+        public string Description { get; set; }
         public int ChapterCount { get; set; }
 
         public string Tags { get; set; }
