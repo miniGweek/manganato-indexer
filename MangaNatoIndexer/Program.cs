@@ -1,4 +1,4 @@
-﻿using MangaNatoIndexer;
+﻿using Microsoft.EntityFrameworkCore;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .UseSerilog((hostBuilderContext, loggerConfiguration) =>
@@ -10,7 +10,13 @@ IHost host = Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((hostContext, services) =>
     {
+        var config = hostContext.Configuration;
+        
+        var mangaDbConnectionString = config.GetSection("ConnectionStrings:MangaDatabase").Value;
         services.AddSingleton<ParseMangaNato>();
+        services.AddDbContext<ManganatoContext>(
+            options =>
+            options.UseSqlServer(mangaDbConnectionString));
     })
     .Build();
 
