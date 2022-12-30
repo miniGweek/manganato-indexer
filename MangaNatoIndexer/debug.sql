@@ -1,8 +1,8 @@
 -- use manga;
-drop table dbo.__EFMigrationsHistory;
-drop table Tags;
 drop table MangaAndTags
+drop table Tags;
 drop table Mangas;
+drop table dbo.__EFMigrationsHistory;
 
 use manga;
 select * from Mangas
@@ -17,3 +17,6 @@ join Tags as T2 on MT2.TagId = T2.TagId
     where M2.MangaId = M1.MangaId
     FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 1, '')
 from Mangas as M1
+
+select Name,Count(Name) from Mangas
+Group By Name
