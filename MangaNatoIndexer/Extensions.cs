@@ -64,53 +64,25 @@ namespace MangaNatoIndexer
                 }
                 catch (TimeoutException tex)
                 {
-                    logger.LogError(tex, $"Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
-                    logger.LogInformation($"RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    logger.LogError(tex, $"Timeout Exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     await Task.Delay(TimeSpan.FromSeconds(retryInterval));
-                    logger.LogInformation($"Ready for next attempt.");
+                    logger.LogInformation($"Ready for next attempt. {uri}");
                     retryCount++;
                     retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount+1);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, $"Unknown exception while visiting {uri}, moving on the next one");
+                    logger.LogError(ex, $"Unknown exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    await Task.Delay(TimeSpan.FromSeconds(retryInterval));
+                    logger.LogInformation($"Ready for next attempt. {uri}");
+                    retryCount++;
+                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount + 1);
                 }
 
             }
             return null;
-        }
-
-        internal static async Task<string> RetryableLocatorInnerTextAsync(this ILocator locator,
-            ILogger<ParseMangaNato> logger)
-        {
-            int maxRetryCount = 3;
-            double retryInterval = 2;
-            double retryIntervalBackOffCoefficient = 2;
-
-            int retryCount = 0;
-            while (retryCount <= maxRetryCount)
-            {
-
-                try
-                {
-                    return await locator.InnerTextAsync();
-                }
-                catch (TimeoutException tex)
-                {
-                    logger.LogError(tex, $"Locator failed. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
-                    logger.LogInformation($"RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
-                    await Task.Delay(TimeSpan.FromSeconds(retryInterval));
-                    logger.LogInformation($"Ready for next attempt.");
-                    retryCount++;
-                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount + 1);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Unknown exception while trying to locate, moving on the next one");
-                }
-
-            }
-            return "";
         }
 
         internal static async Task<string> InnerTextHandleExceptionAsync(this ILocator locator,
