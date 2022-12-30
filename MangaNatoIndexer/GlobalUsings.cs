@@ -1,5 +1,7 @@
 // Global using directives
 
+global using System.Collections.Concurrent;
+global using System.Text.RegularExpressions;
 global using MangaNatoIndexer;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;

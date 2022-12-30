@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
-
-namespace MangaNatoIndexer
+﻿namespace MangaNatoIndexer
 {
     internal class ManganatoDbContext : DbContext
     {

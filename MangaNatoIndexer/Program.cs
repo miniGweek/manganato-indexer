@@ -1,8 +1,11 @@
-﻿IHost host = Host.CreateDefaultBuilder(args)
+﻿using Serilog.Events;
+
+IHost host = Host.CreateDefaultBuilder(args)
     .UseSerilog((hostBuilderContext, loggerConfiguration) =>
     {
         loggerConfiguration
             .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .WriteTo.Console()
             .WriteTo.File("ParseMangaNato.log");
     })

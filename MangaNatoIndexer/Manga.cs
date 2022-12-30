@@ -1,5 +1,4 @@
 ﻿namespace MangaNatoIndexer;
-
 internal class Manga
 {
     public int MangaId { get; set; }

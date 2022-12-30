@@ -1,7 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
-
-namespace MangaNatoIndexer
+﻿namespace MangaNatoIndexer
 {
     internal class ParseMangaNato
     {
@@ -31,33 +28,37 @@ namespace MangaNatoIndexer
             _logger.LogInformation($"Total pages to parse: {pagesToIndexCount}");
 
             var existingTags = (await _repository.GetListAsync<Tag>()).ToList();
+            var parallelProcessMangaPages = 4;
             var parallelProcessMangasInAPage = 5;
-            var parallelProcessMangaPages = 3;
 
             for (var i = 1; i <= pagesToIndexCount; i += parallelProcessMangaPages)
             {
+                var concurrentBagOfManga = new ConcurrentBag<Manga>();
+                var concurrentBagOfMangaAndTags = new ConcurrentBag<MangaAndTags>();
+
                 var tasks = new List<Task>();
-                var pIndexUpper = i + parallelProcessMangaPages > pagesToIndexCount ? pagesToIndexCount : i + parallelProcessMangaPages;
+                var pIndexUpper = i + parallelProcessMangaPages > pagesToIndexCount ? pagesToIndexCount : i + parallelProcessMangaPages - 1;
+
                 for (int pIndex = i; pIndex <= pIndexUpper; pIndex++)
                 {
-                    tasks.Add(ParseNewMangaPage(context, pIndex, parallelProcessMangasInAPage, existingTags));
-                    
+                    tasks.Add(ParseNewMangaPage( context, pIndex, parallelProcessMangasInAPage, existingTags, concurrentBagOfManga, concurrentBagOfMangaAndTags));
+
                 }
                 await Task.WhenAll(tasks);
+
+                await SaveMangaInformation(concurrentBagOfManga, concurrentBagOfMangaAndTags);
             }
         }
 
-        private async Task ParseNewMangaPage(IBrowserContext context, int mangaPageIndex, int parallelProcessMangaInAPage, List<Tag> existingTags)
+        private async Task ParseNewMangaPage(IBrowserContext context, int mangaPageIndex, int parallelProcessMangaInAPage, List<Tag> existingTags, ConcurrentBag<Manga> concurrentBagOfManga, ConcurrentBag<MangaAndTags> concurrentBagOfMangaAndTags)
         {
             var mangaPage = await context.NewPageAsync();
             await mangaPage.GotoAsync($"https://manganato.com/genre-all/{mangaPageIndex}");
 
-            _logger.LogInformation($"Begin parsing page {mangaPageIndex}");
+            // _logger.LogInformation($"Begin parsing page {mangaPageIndex}");
 
             var mangaTiles = mangaPage.Locator("div.content-genres-item");
             var mangaTilesCount = await mangaTiles.CountAsync();
-            var concurrentBagOfManga = new ConcurrentBag<Manga>();
-            var concurrentBagOfMangaAndTags = new ConcurrentBag<MangaAndTags>();
             _logger.LogInformation($"To queue - PageIndex:{mangaPageIndex} - MangaTitlesInAPage:{mangaTilesCount}");
             for (var index = 0; index < mangaTilesCount; index += parallelProcessMangaInAPage)
             {
@@ -73,19 +74,6 @@ namespace MangaNatoIndexer
 
                 await Task.WhenAll(tasks);
             }
-
-            foreach (var manga in concurrentBagOfManga)
-            {
-                await _repository.AddAsync(manga);
-            }
-
-            foreach (var mangaAndTag in concurrentBagOfMangaAndTags)
-            {
-                await _repository.AddAsync(mangaAndTag);
-            }
-
-            await _repository.SaveChangesAsync();
-
             _logger.LogInformation($"End parsing page {mangaPageIndex}");
             await mangaPage.CloseAsync();
         }
@@ -122,7 +110,7 @@ namespace MangaNatoIndexer
             }
 
             var mangaDetailsPage = await context.NewPageAsync();
-            await mangaDetailsPage.GotoAsync(url, new PageGotoOptions() { Timeout = 60000 });
+            await mangaDetailsPage.GotoAsync(url);
             var mangaDetailCard = mangaDetailsPage.Locator("div.story-info-right");
 
             var authorsTableRow =
@@ -175,8 +163,23 @@ namespace MangaNatoIndexer
                 {
                     concurrentBagOfMangaAndTags.Add(new MangaAndTags() { Manga = mangaEntity, Tag = tag });
                 }
-            } 
+            }
             // _logger.LogInformation($"End {index} - {titleText}");
+        }
+
+        private async Task SaveMangaInformation(ConcurrentBag<Manga> concurrentBagOfManga, ConcurrentBag<MangaAndTags> concurrentBagOfMangaAndTags)
+        {
+            foreach (var manga in concurrentBagOfManga)
+            {
+                await _repository.AddAsync(manga);
+            }
+
+            foreach (var mangaAndTag in concurrentBagOfMangaAndTags)
+            {
+                await _repository.AddAsync(mangaAndTag);
+            }
+
+            await _repository.SaveChangesAsync();
         }
     }
 }
