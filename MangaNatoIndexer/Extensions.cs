@@ -1,4 +1,9 @@
-﻿namespace MangaNatoIndexer
+﻿
+using Azure;
+using System;
+using static System.Net.Mime.MediaTypeNames;
+
+namespace MangaNatoIndexer
 {
     internal static class Extensions
     {
@@ -41,6 +46,89 @@
             if ("M".Equals(parsed[1], StringComparison.InvariantCultureIgnoreCase))
                 return (int)(viewCountNumberPart * 1000000);
             return 0;
+        }
+
+        internal static async Task<IResponse?> GoToAsync2(this IPage? page, string uri, ILogger<ParseMangaNato> logger)
+        {
+            int maxRetryCount = 5;
+            double retryInterval = 3;
+            double retryIntervalBackOffCoefficient = 2;
+
+            int retryCount = 0;
+            while (retryCount <= maxRetryCount)
+            {
+                
+                try
+                {
+                    return await page.GotoAsync(uri);
+                }
+                catch (TimeoutException tex)
+                {
+                    logger.LogError(tex, $"Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    logger.LogInformation($"RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    await Task.Delay(TimeSpan.FromSeconds(retryInterval));
+                    logger.LogInformation($"Ready for next attempt.");
+                    retryCount++;
+                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount+1);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Unknown exception while visiting {uri}, moving on the next one");
+                }
+
+            }
+            return null;
+        }
+
+        internal static async Task<string> RetryableLocatorInnerTextAsync(this ILocator locator,
+            ILogger<ParseMangaNato> logger)
+        {
+            int maxRetryCount = 3;
+            double retryInterval = 2;
+            double retryIntervalBackOffCoefficient = 2;
+
+            int retryCount = 0;
+            while (retryCount <= maxRetryCount)
+            {
+
+                try
+                {
+                    return await locator.InnerTextAsync();
+                }
+                catch (TimeoutException tex)
+                {
+                    logger.LogError(tex, $"Locator failed. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    logger.LogInformation($"RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
+                    await Task.Delay(TimeSpan.FromSeconds(retryInterval));
+                    logger.LogInformation($"Ready for next attempt.");
+                    retryCount++;
+                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount + 1);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Unknown exception while trying to locate, moving on the next one");
+                }
+
+            }
+            return "";
+        }
+
+        internal static async Task<string> InnerTextHandleExceptionAsync(this ILocator locator,
+            ILogger<ParseMangaNato> logger)
+        {
+            try
+            {
+                return await locator.InnerTextAsync();
+            }
+            catch (TimeoutException tex)
+            {
+                logger.LogError(tex, $"Locator failed.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Unknown exception while trying to locate, moving on the next one");
+            }
+            return "";
         }
     }
 }
