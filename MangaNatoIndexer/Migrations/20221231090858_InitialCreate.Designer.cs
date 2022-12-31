@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MangaNatoIndexer.Migrations
 {
     [DbContext(typeof(ManganatoDbContext))]
-    [Migration("20221231055322_InitialCreate")]
+    [Migration("20221231090858_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

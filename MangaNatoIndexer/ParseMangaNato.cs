@@ -35,8 +35,8 @@
             _logger.LogInformation($"Total pages to parse: {pagesToIndexCount}");
 
             var existingTags = (await _repository.GetListAsync<Tag>()).ToList();
-            var parallelProcessMangaPages = 3;
-            var parallelProcessMangasInAPage = 4;
+            var parallelProcessMangaPages = 5;
+            var parallelProcessMangasInAPage = 5;
 
             for (var i = 1; i <= pagesToIndexCount; i += parallelProcessMangaPages)
             {
