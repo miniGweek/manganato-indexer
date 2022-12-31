@@ -64,6 +64,15 @@ namespace MangaNatoIndexer
                 }
                 catch (TimeoutException tex)
                 {
+                    var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
+                    var u = new Uri(uri);
+                    var errorScreenshotFilePath = $"Error-{u.AbsolutePath.Replace("/", "-")}-{timeStamp}.png";
+                    logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
+                    await page.ScreenshotAsync(new PageScreenshotOptions()
+                    {
+                        FullPage = true,
+                        Path = errorScreenshotFilePath
+                    });
                     logger.LogError(tex, $"Timeout Exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     await Task.Delay(TimeSpan.FromSeconds(retryInterval));
@@ -73,6 +82,15 @@ namespace MangaNatoIndexer
                 }
                 catch (Exception ex)
                 {
+                    var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
+                    var u = new Uri(uri);
+                    var errorScreenshotFilePath = $"Error-{u.AbsolutePath.Replace("/", "-")}-{timeStamp}.png";
+                    logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
+                    await page.ScreenshotAsync(new PageScreenshotOptions()
+                    {
+                        FullPage = true,
+                        Path = errorScreenshotFilePath
+                    });
                     logger.LogError(ex, $"Unknown exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     await Task.Delay(TimeSpan.FromSeconds(retryInterval));
