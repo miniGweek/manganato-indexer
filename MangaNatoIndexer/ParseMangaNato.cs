@@ -5,6 +5,7 @@
         private ILogger<ParseMangaNato> _logger;
         private readonly IRepository _repository;
         private const float Timeout = 15000;
+        private IPlaywright? playwright;
 
         public ParseMangaNato(ILogger<ParseMangaNato> logger, IRepository repository)
         {
@@ -15,7 +16,8 @@
         {
             _logger.LogInformation("Initialization Manganato Indexer.");
 
-            using var playwright = await Playwright.CreateAsync();
+            playwright = await Playwright.CreateAsync();
+
             await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = false });
             var context = await browser.NewContextAsync();
             context.SetDefaultNavigationTimeout(Timeout);
@@ -27,6 +29,8 @@
 
             var lastPageUrl = await page.Locator("div.group-page>a.page-blue.page-last").GetAttributeAsync("href");
             var pagesToIndexCount = int.Parse(lastPageUrl.Split("/").Last());
+            await page.CloseAsync();
+            await context.CloseAsync();
 
             _logger.LogInformation($"Total pages to parse: {pagesToIndexCount}");
 
@@ -44,7 +48,7 @@
 
                 for (int pIndex = i; pIndex <= pIndexUpper; pIndex++)
                 {
-                    tasks.Add(ParseNewMangaPage(context, pIndex, parallelProcessMangasInAPage, existingTags, concurrentBagOfManga, concurrentBagOfMangaAndTags));
+                    tasks.Add(ParseNewMangaPage(pIndex, parallelProcessMangasInAPage, existingTags, concurrentBagOfManga, concurrentBagOfMangaAndTags));
 
                 }
                 await Task.WhenAll(tasks);
@@ -53,8 +57,10 @@
             }
         }
 
-        private async Task ParseNewMangaPage(IBrowserContext context, int mangaPageIndex, int parallelProcessMangaInAPage, List<Tag> existingTags, ConcurrentBag<Manga> concurrentBagOfManga, ConcurrentBag<MangaAndTags> concurrentBagOfMangaAndTags)
+        private async Task ParseNewMangaPage( int mangaPageIndex, int parallelProcessMangaInAPage, List<Tag> existingTags, ConcurrentBag<Manga> concurrentBagOfManga, ConcurrentBag<MangaAndTags> concurrentBagOfMangaAndTags)
         {
+            await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = false });
+            var context = await browser.NewContextAsync();
             var mangaPage = await context.NewPageAsync();
             await mangaPage.GoToAsync2($"https://manganato.com/genre-all/{mangaPageIndex}", _logger);
 
