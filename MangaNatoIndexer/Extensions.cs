@@ -51,46 +51,46 @@ namespace MangaNatoIndexer
         internal static async Task<IResponse?> GoToAsync2(this IPage? page, string uri, ILogger<ParseMangaNato> logger)
         {
             int maxRetryCount = 5;
-            double retryInterval = 3;
+            double retryInterval = 2;
             double retryIntervalBackOffCoefficient = 2;
 
             int retryCount = 0;
             while (retryCount <= maxRetryCount)
             {
-                
+
                 try
                 {
-                    return await page.GotoAsync(uri);
+                    var pageResponse = await page.GotoAsync(uri);
+                    var logo = page.Locator("div.body-site>div.container.container-header>div.logo>a>img").GetAttributeAsync("title");
+                    return pageResponse;
                 }
                 catch (TimeoutException tex)
                 {
-                    var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
-                    var u = new Uri(uri);
-                    var errorScreenshotFilePath = $"Error-{u.AbsolutePath.Replace("/", "-")}-{timeStamp}.png";
-                    logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
-                    await page.ScreenshotAsync(new PageScreenshotOptions()
-                    {
-                        FullPage = true,
-                        Path = errorScreenshotFilePath
-                    });
+                    // var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
+                    // var errorScreenshotFilePath = $"{timeStamp}.png";
+                    // logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
+                    // await page.ScreenshotAsync(new PageScreenshotOptions()
+                    // {
+                    //     FullPage = true,
+                    //     Path = $"timeStamp.png"
+                    // });
                     logger.LogError(tex, $"Timeout Exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     await Task.Delay(TimeSpan.FromSeconds(retryInterval));
                     logger.LogInformation($"Ready for next attempt. {uri}");
                     retryCount++;
-                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount+1);
+                    retryInterval = Math.Pow(retryIntervalBackOffCoefficient, retryCount + 1);
                 }
                 catch (Exception ex)
                 {
-                    var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
-                    var u = new Uri(uri);
-                    var errorScreenshotFilePath = $"Error-{u.AbsolutePath.Replace("/", "-")}-{timeStamp}.png";
-                    logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
-                    await page.ScreenshotAsync(new PageScreenshotOptions()
-                    {
-                        FullPage = true,
-                        Path = errorScreenshotFilePath
-                    });
+                    // var timeStamp = DateTime.Now.ToString("ddMMyyyy.hhmmss.fff");
+                    // var errorScreenshotFilePath = $"{timeStamp}.png";
+                    // logger.LogInformation($"Capturing error screensht @ {errorScreenshotFilePath}");
+                    // await page.ScreenshotAsync(new PageScreenshotOptions()
+                    // {
+                    //     FullPage = true,
+                    //     Path = $"timeStamp.png"
+                    // });
                     logger.LogError(ex, $"Unknown exception. Failed to load {uri}. Retrying - RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     logger.LogInformation($"{uri} RetryCount:{retryCount} - RetryInterval:{retryInterval}:");
                     await Task.Delay(TimeSpan.FromSeconds(retryInterval));
